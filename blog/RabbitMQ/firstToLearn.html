@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>RabbitMQ入门|Sbb-Blog</title>
+	<meta name="keywords" content="RabbitMQ,并发,Sbb-Blog">
+	<meta name="description" content="rabbitmq是一个消息代理系统，为应用提供一个通用得消息发布，接受平台，为应用提供非阻塞的消息系统，方便进行异步处理。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/RabbitMQ/firstToLearn.html" rel="bookmark">RabbitMQ入门 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-05-21</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-5-21
+title: RabbitMQ入门
+tags: RabbitMQ 并发
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: RabbitMQ
+status: publish
+summary: rabbitmq是一个消息代理系统，为应用提供一个通用得消息发布，接受平台，为应用提供非阻塞的消息系统，方便进行异步处理。
+-->
+<h2>简介</h2>
+<p>rabbitmq是一个消息代理系统，为应用提供一个通用得消息发布，接受平台，为应用提供非阻塞的消息系统，方便进行异步处理。</p>
+<h4>优点</h4>
+<ol>
+<li>消息的可靠性。持久化消息，消息接受确认，消息重传等可靠机制。</li>
+<li>灵活的路由。交换机可以根据广播，或者根据路由键或匹配符匹配到不同的队列。</li>
+<li>高可用的集群。</li>
+</ol>
+<h2>应用场景</h2>
+<h4>1.异步处理</h4>
+<p>减少用户对不必要的耗时操作的等待，处理结果以异步方式（邮件，消息推送）进行提醒。</p>
+<h4>2.应用解耦</h4>
+<p>当某个应用发展到一定规模的时候，需要把里面的模块分别拆出来进行解耦，而模块之间的通讯方式是多样的，常见的有rpc，消息队列，http请求。其中消息队列在内部模块通信是更为稳定。</p>
+<h4>3.流量削峰</h4>
+<p>如果突发遇到大量的数据请求的时候，服务器如果不做队列处理，一下子处理全部的请求，会很容易造成宕机，如果把请求的数据都放入队列里，之后再逐个逐个地进行处理，可以平缓地渡过流量高峰期。</p>
+<h3>工作方式</h3>
+<p>rabbitmq的工作方式如下，生产者（publisher）发送消息到交换机，交换机（exchange）根据自己的类型以及消息的路由键，路由到对应的队列里，队列分发消息到消费者（consumer）<br />
+<img src="/blog/img/RabbitMQ/4.png" alt="" /></p>
+<h2>初尝rabbitmq</h2>
+<p>现在我们假设有这个场景，客服A需要发送客户的下单信息给库存人员B，客服A有一个订单信息发送器，库存人员B拥有消息接收器。<br />
+首先库存人员B建立连接并接受消息，伪代码：</p>
+<pre><code>// 建立连接
+conn, _ := amqp.Dial("amqp://localhost")
+ch, _ := conn.Channel()
+// 声明队列，不存在则创建，存在则不会进行任何操作
+queue, _ := ch.QueueDeclare("order")
+// 从队列里面获取消息
+deliver, _ := ch.Consume(q.Name)
+for d:= range deliver {
+    // 输出消息主体
+    log.Printf("B Received a message: %s", d.Body)
+    // 返回获取成功标识给队列
+    d.Ack(true)
+}</code></pre>
+<p>然后客服A也建立连接并发送消息，伪代码：</p>
+<pre><code>// 建立连接
+conn, _ := amqp.Dial("amqp://localhost")
+ch, _ := conn.Chanenel()
+// 声明队列，不存在则创建，存在则不会进行任何操作
+queue, _ := ch.QueueDeclare("order")
+// 发布消息
+ch.Publish(
+    q.Name, // 队列名字
+    amqp.Publishing{
+        Body:[]byte("new order" + product.String()),
+    })</code></pre>
+<p>上面就是一种简单的直接通过队列进行连接的方法，可能会有人看出来，为什么没有交换机的参与，其实上面的操作其实是通过默认交换机进行消息传递，可以不指定交换机名字直接指定队列名字进行交互。</p>
+<h2>模块介绍</h2>
+<p>通过上面的简单例子，我们可以更进一步地了解到rabbitmq的工作方式，下面我会更详细地讲解各个模块。</p>
+<h3>消息</h3>
+<p>消息是通信内容的主体，消息对象有点像http的request，除了可以携带消息内容，还可以带有各种属性，如：</p>
+<ol>
+<li>ContentType（内容类型）</li>
+<li>ContentEncoding（内容编码）</li>
+<li>RemoteKey（路由键）</li>
+<li>DeliveryMode（ 投递模式，消息是否持久化）</li>
+<li>等等... </li>
+</ol>
+<p>有些属性只是约定规范，如ContentType，ContentEncoding，需要程序自己做处理，有些属性rabbitmq会根据值来进行处理，如RemoteKey，交换机会根据消息的RemoteKey和自身的类型来决定投递到哪些队列，DeliveryMode可以决定是否持久化消息。</p>
+<pre><code>#消息投递
+ch.Publish(
+    "",     # exchange名字，空为默认交换机
+    key,    # routingkey 路由键
+    false,  
+    false,
+    # 消息
+    amqp.Publishing{
+        DeliveryMode:amqp.Persistent,
+        ContentType:"text/plain",
+        Body:[]byte("hello world"),
+    }) </code></pre>
+<h3>队列</h3>
+<p>队列是存储消息的主体，队列本身所拥有的一些属性：</p>
+<ol>
+<li>Name 队列名字，不同的队列名字应该保持唯一性</li>
+<li>Durable  rabbitmq重启后，队列是否依旧存在，需要注意消息要持久化的要另外设置消息</li>
+<li>exclusive 当前队列只能被一个消费者连接使用，关闭连接后删除队列。</li>
+<li>auto-delete 最后一个消费者退订后删除队列。    </li>
+</ol>
+<p>在代码里面队列声明，如果队列不存在则新建队列，如果已存在相同名字的队列且属性不同的话则会报错。可以选择让系统自动生成队列，然后返回队列名字。</p>
+<pre><code># 队列声明，参数依次为name，Durable，auto-delete，exclusive，no-wait.args
+amqp.QueueDeclare("queuename", true, false, flase, false, nil)</code></pre>
+<h3>消费者（consumer）</h3>
+<p>消费者用以消费队列里的消息的自定义程序片段，消费者获取队列里的消息有两种方式，一种是拉取（pull）的方式，通过channel.basicget方法，一种是订阅方式，队列推送消息到rabbitmq，这种方式用的最多。</p>
+<h3>消息处理</h3>
+<p>消息处理，消费者端连接队列后，可以得到一个类似于句柄的东西，如果没有消息就会一直阻塞。<br />
+消费者在收到消息之后处理的情况可能是成功的，也有可能是失败的，为了确保消息已经成功处理然后队列删除消息，如果失败则进行其他机制，以免消息一直重复在队列里面，或消息因消费者宕机而丢失。</p>
+<h4>消息确认（ack）</h4>
+<p>如果消息成功地被消费者处理的话，需要有一个消息确认的机制。<br />
+rabbitmq提供两种确认机制：   </p>
+<ol>
+<li>自动确认模式，队列将消息发送给消费者之后立即删除消息（basic.deliver或basic.get-ok）</li>
+<li>显式确认模式，待消费者发送接受成功之后删除（basic.ack）  </li>
+</ol>
+<p>一般而言我们用的更多的是显式确认模式，如果消费者接收到消息没有进行确认之后就宕机了，队列里面的该消息还是会存在的，然后会把消息转发到其他消费者。</p>
+<h4>消息拒绝（basic.reject）</h4>
+<p>如果消费者对消息的处理出现了一些问题，可以调用rabbitmq的basic.reject来拒绝消息，拒绝消息之后，可以做的是把消息放回到队列里面，或者直接删除消息。</p>
+<blockquote>
+<p>其实如果出现问题的消息，即便是交给其他的消费者，很会很大概率继续出现问题，这时候我们可以把消息放到其他专门处理记录问题的队列里面，交由另外的消费者处理。</p>
+</blockquote>
+<h3>交换机</h3>
+<p>交换机更像是消息的路由层，队列绑定到交换机，然后发布者可以发送的消息都是经过交换机的，然后经由消息的remote key（路由键）路由到交换机所绑定的队列里。
+交换机分为4种类型：</p>
+<h4>1.直连交换机（direct）</h4>
+<p>直连型交换机（direct exchange）是根据消息携带的路由键（routing key）将消息投递给对应队列的。</p>
+<ol>
+<li>将一个队列绑定到某个交换机上，同时赋予该绑定一个路由键（routing key）</li>
+<li>当一个携带着路由键为R的消息被发送给直连交换机时，交换机会把它路由给绑定值同样为R的队列。</li>
+</ol>
+<p>其实初尝rabbitmq的例子里面，看上去没有绑定交换机，实际上也是绑定了直连交换机，只是是一个特殊的预先声明好的，名字为空字符串的交换机，叫默认交换机，每个队列都会自动绑定到默认交换机上。<br />
+<img src="/blog/img/RabbitMQ/1.png" alt="" /></p>
+<h4>2.扇形交换机（funout）</h4>
+<p>扇型交换机（funout exchange）将消息路由给绑定到它身上的所有队列，而不理会绑定的路由键。如果N个队列绑定到某个扇型交换机上，当有消息发送给此扇型交换机时，交换机会将消息的拷贝分别发送给这所有的N个队列。扇型用来交换机处理消息的<font color=red>广播路由</font>（broadcast routing）。<br />
+<img src="/blog/img/RabbitMQ/2.png" alt="" /></p>
+<h4>3.主题交换机（topic）</h4>
+<p>主题交换机（topic exchanges）通过对消息的路由键和队列到交换机的绑定模式之间的匹配，将消息路由给一个或多个队列。主题交换机经常用来实现各种分发/订阅模式及其变种。主题交换机通常用来实现消息的多播路由（multicast routing）。<br />
+主题交换机在我看来就像添加了简单的<font color=red>通配符+字符串</font>来达到一个路由的规则。<br />
+<img src="/blog/img/RabbitMQ/3.png" alt="" /></p>
+<h4>4.头交换机（headers）</h4>
+<p>头交换机用的不是很多，有时消息的路由操作会涉及到多个属性，此时使用消息头就比用路由键更容易表达，头交换机（headers exchange）就是为此而生的。头交换机使用多个消息属性来代替路由键建立路由规则。通过判断消息头的值能否与指定的绑定相匹配来确立路由规则。</p>
+<h2>扇形路由器实现广播</h2>
+<p>生产者代码</p>
+<pre><code>conn, _ := amqp.Dial("amqp://localhost")
+
+ch, _ := conn.Channel()
+
+ch.ExchangeDeclare(
+    "hello",
+    "fanout",
+    true,
+    false,
+    false,
+    false,
+    nil,
+    )
+
+ch.Publish(
+    "hello",
+    "",     // 由于是广播，所以可以不填写路由键
+    false,
+    false,
+    amqp.Publishing{
+        DeliveryMode:amqp.Persistent,
+        Body:[]byte("hello"+time.Now().String()),
+    })</code></pre>
+<p>消费者代码</p>
+<pre><code>conn, _ := amqp.Dial("amqp://localhost")
+
+ch, _ := conn.Channel()
+
+ch.ExchangeDeclare(
+        "hello",  // 交换机名字
+        "fanout", // 交换机类型
+        true,     // durable
+        false,    // autoDelete
+        false,    // internal
+        false,    // noWait
+        nil,      // args
+    )
+
+q, _ := ch.QueueDeclare(
+        "", 
+        false,  // durable
+        false,  // autoDelete
+        true,   // exclusive
+        false,  // noWait
+        nil,    //
+        )
+
+ch.QueueBind(
+    q.Name,     // queuename 
+    "",         // remote key，由于是广播，可以不填写路由键
+    "hello",    // exchange name
+    false,      // nowait
+    nil,
+    )
+
+msgs, _ := ch.Consume(q.Name,"", true, false, false,false,nil)
+
+for msg := range msgs {
+    log.Printf("%s", msg.Body)
+}</code></pre>
+<h2>主题交换机实现路由匹配</h2>
+<p>设有如下场景：设计一个日志收集系统，日志有不同的级别，debug，info，warn，error，日志格式为：</p>
+<pre><code>级别.模块名字 如：info.login</code></pre>
+<p>有不同的队列负责收集不同级别的日志，其中有个队列专门收集收集warn和error的数据，设计如下：
+生产者</p>
+<pre><code>func main() {
+    conn, _ := amqp.Dial("amqp://localhost")
+
+    ch, _ := conn.Channel()
+
+    ch.ExchangeDeclare(
+        "logs",
+        "topic",
+        true,
+        false,
+        false,
+        false,
+        nil,
+    )
+
+    ch.Publish(
+        "logs",
+        "debug.123",
+        false,
+        false,
+        amqp.Publishing{
+            DeliveryMode:amqp.Persistent,
+            Body:[]byte("hello"),
+        },
+    )
+}
+</code></pre>
+<p>消费者</p>
+<pre><code>func main() {
+    conn, _ := amqp.Dial("amqp://localhost")
+    ch, _ := conn.Channel()
+
+    ch.ExchangeDeclare(
+        "logs",
+        "topic",
+        true,
+        false,
+        false,
+        false,
+        nil,
+    )
+
+    q, _ := ch.QueueDeclare(
+        "log1",
+        true,
+        false,
+        false,
+        false,
+        nil,
+    )
+
+    // 队列绑定的remote key
+    keys := []string{"error.*", "warn.*"}
+
+    for _, key := range keys{
+        ch.QueueBind(
+            q.Name,
+            key,
+            "logs",
+            false,
+            nil,
+        )
+    }
+
+    deliver, _ := ch.Consume(
+        q.Name,
+        "",
+        false,
+        false,
+        false,
+        false,
+        nil,
+    )
+
+    for d:= range deliver {
+        fmt.Println(string(d.Body))
+        d.Ack(true)
+    }
+}</code></pre>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/RabbitMQ.html" rel="category">RabbitMQ</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/RabbitMQ.html" rel="tag">RabbitMQ</a></li>
+                   <li><a href="/tags/%E5%B9%B6%E5%8F%91.html" rel="tag">并发</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'f062b107d10fa689a902f66261760cca',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

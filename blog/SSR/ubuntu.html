@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>在ubuntu翻墙|Sbb-Blog</title>
+	<meta name="keywords" content="Linux,Sbb-Blog">
+	<meta name="description" content="本文章记录自己在ubuntu翻墙的实现方法...">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/SSR/ubuntu.html" rel="bookmark">在ubuntu翻墙 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-02-13</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-02-13
+title: 在ubuntu翻墙
+tags: Linux
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Linux
+status: publish
+summary: 本文章记录自己在ubuntu翻墙的实现方法...
+-->
+<h2>一. 安装ssr客户端</h2>
+<pre><code>wget http://www.djangoz.com/ssr
+sudo mv ssr /usr/local/bin
+sudo chmod 766 /usr/local/bin/ssr
+ssr install
+ssr config</code></pre>
+<blockquote>
+<p>具体的操作方式其实可以打开第一步下载的脚本看看的，开头有注释</p>
+</blockquote>
+<h2>二. 全局代理（最简单方法）</h2>
+<p>直接打开ubuntu的网络设置去进行设置。<br />
+setting-&gt;network-&gt;network proxy<br />
+<img src="/blog/img/SSR/ubuntu/1.png" alt="" /></p>
+<h2>三. chrome翻墙</h2>
+<p>下载SwitchySharp，添加到chrome扩展中，然后进行设置。<br />
+首先设置 Proxy Profiles设置里面的manual config里的SOCKS Host，根据自己的ssr去进行设置。<br />
+<img src="/blog/img/SSR/ubuntu/2.png" alt="" />  </p>
+<p>如果自己不需要浏览器全局代理，那么设置switch rules，根据自己的需要代理的网站去进行设置，其他不需要翻墙的网站则不需要代理，例如说我经常用谷歌和百度，就仅仅设置谷歌<br />
+<img src="/blog/img/SSR/ubuntu/3.png" alt="" />  </p>
+<p>使用的时候我一般使用Auto Switch Mode<br />
+<img src="/blog/img/SSR/ubuntu/4.png" alt="" />  </p>
+<p>如果遇到一些不常用的外国网站可以直接设置回自己浏览器全局代理模式。
+<img src="/blog/img/SSR/ubuntu/5.png" alt="" />  </p>
+<h2>四. 终端翻墙</h2>
+<p>使用privoxy进行代理，在配置文件（/etc/privoxy/config）进行如下设置</p>
+<pre><code>forward-socks5 / 127.0.0.1:1080 .
+# local network do not use proxy
+forward         192.168.*.*/    .
+forward         10.*.*.*/       .
+forward         127.*.*.*/      .</code></pre>
+<p>根本配置文件找到代理端口，搜索listen-address 看到端口是8118<br />
+然后重启服务，在终端输入以下命令即可</p>
+<pre><code>export http_proxy="http://127.0.0.1:8181"
+export https_proxy=$http_proxy
+export ftp_proxy=$http_proxy
+export rsync_proxy=$http_proxy
+export no_proxy="localhost,127.0.0.1"</code></pre>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Linux.html" rel="category">Linux</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Linux.html" rel="tag">Linux</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'f85cb301f15588febce6dbcdf8b8b76b',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

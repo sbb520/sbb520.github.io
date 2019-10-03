@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>服务器的两种并发原理|Sbb-Blog</title>
+	<meta name="keywords" content="server,Sbb-Blog">
+	<meta name="description" content="服务器实现并发的两种方式。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/server/1.html" rel="bookmark">服务器的两种并发原理 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-11-07</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-11-7
+title: 服务器的两种并发原理
+tags: server
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: server
+status: publish
+summary: 服务器实现并发的两种方式。
+-->
+<p>众所周知，现在的服务器可以处理多个socket连接，背后并发的实现主要有两种途径。</p>
+<ol>
+<li>多线程同步阻塞</li>
+<li>I/O多路复用</li>
+</ol>
+<h2>socket的建立</h2>
+<p>聊到socket，就不得不提到socket的建立的流程。祭出经典的老图：
+<img src="/blog/img/server/1.png" alt="jpg" /></p>
+<p>服务器依次使用<font color=red>socket，bind，listen</font>之后就会监听对应的地址，此时<font color=red>accept</font>会一直阻塞直到有连接建立，如果客户端和服务器建立了连接，那么<font color=red>accept</font>就会返回一个连接句柄，可以对连接进行读数据或者写数据。</p>
+<h4>同步阻塞</h4>
+<p>那么问题来了，服务器如果不做特殊处理的话，一次只能处理一个连接，新的连接来是需要等待上一个连接结束才能连接成功，这就是最开始的服务器同步阻塞方法。</p>
+<blockquote>
+<p>同步阻塞：进程发起IO系统调用后，进程被阻塞，转到内核空间处理，整个IO处理完毕后返回进程。操作成功则进程获取到数据。</p>
+</blockquote>
+<p><img src="/blog/img/server/2.png" alt="" /></p>
+<h2>多线程并发</h2>
+<p>可能以前的拥有的电脑人不多，这种方式一次只能连接一个倒也没有问题，之后访问的人开始多起来，设计者觉得这样下去不行，就设计了多线程同步阻塞的方法。每次accept获得一个句柄，就创建一个线程去处理连接，这下子就能同时处理多个连接呢。这就是经典的多线程同步阻塞的方法。</p>
+<blockquote>
+<p>典型的多线程（进程）并发模型就是<font color=red>cgi</font>。</p>
+</blockquote>
+<h4>特点</h4>
+<p>服务器和客户端之间的并发，有以下特点：</p>
+<ol>
+<li>外部连接很多，但很多连接是不活跃的连接，典型的如聊天的im系统。</li>
+<li>少量的CPU消耗。</li>
+<li>大部分的时间耗费在I/O阻塞和其他网络服务。</li>
+<li>外部网络不稳定，客户端收发数据慢很多。</li>
+<li>对业务的请求处理很快，大部分时候毫秒级就可以完成。</li>
+</ol>
+<h4>问题</h4>
+<p>根据以上特点，我们可以得知服务器有以下问题：
+如果采用多线程同步阻塞，1个tcp连接需要建立1个线程，10k个连接需要建立10k个连接，然而大部分连接是不活跃，即便是需要处理业务逻辑，也可以快速返回结果，大部分时间也是处于I/O阻塞或网络等待。这就使得多个线程的创建很耗费资源，且线程的切换也是极其耗费CPU，这就很可能导致了CPU处理业务的消耗的资源不多，但是却花了很多资源在进程切换上面。</p>
+<h2>I/O多路复用</h2>
+<p>多线程并发的问题是大部分socket都是闲置的状态或者是处于IO阻塞的状态，那能不能把阻塞的socket先扔到一边去处理其他事情，来避免等待所带来的资源耗费，也就是非阻塞IO的概念。</p>
+<h4>非阻塞IO</h4>
+<p>当用户进程发出read操作时，如果kernel中的数据还没有准备好，那么它并不会block用户进程，而是立刻返回一个error。从用户进程角度讲 ，它发起一个read操作后，并不需要等待，而是马上就得到了一个结果。用户进程判断结果是一个error时，它就知道数据还没有准备好，于是它可以再次发送read操作。一旦kernel中的数据准备好了，并且又再次收到了用户进程的system call，那么它马上就将数据拷贝到了用户内存，然后返回。</p>
+<blockquote>
+<p>因此：使用非阻塞IO是需要不断轮询IO数据是否好了。</p>
+</blockquote>
+<p>IO多路复用原理就是不断轮询多个socket，当其中的某个socket准备好了数据就返回，否则整个进程继续阻塞，就可以让一个进程在不太耗费资源的情况下处理多个连接，但是这个轮询的操作是交给内核态去完成，也就避免了内核态和用户态的切换的问题。</p>
+<blockquote>
+<p>而目前的实现方法有select, poll, epoll，其中epoll的性能最好，用的也是最广泛。</p>
+</blockquote>
+<h4>优点</h4>
+<ol>
+<li>避免了创建多个线程所耗费的资源以及时间。</li>
+<li>对socket的轮询是内核态的完成，不需要像多线程那样切换需要耗费资源。  </li>
+</ol>
+<p><br>
+而epoll的实现可以做到性能几乎不受连接数（单单是连接而没有其他的操作）的影响。</p>
+<p><img src="/blog/img/server/3.png" alt="" /></p>
+<p>当然多路复用IO也有自己的问题，也就是本身不支持多核的使用，需要另外解决多核的利用。</p>
+<blockquote>
+<p>其中使用enroll的成熟程序有nginx，redis，nodej等。</p>
+</blockquote>
+<h2>服务器的发展</h2>
+<p>根据<a href="https://www.zhihu.com/question/64727674/answer/225113965">知乎大佬的介绍</a>，服务器经过发展可以分为两阶段：</p>
+<h4>第一代服务器模型</h4>
+<p>把传输层的tcp并发的连接放到IO多路复用去处理，应用层继续使用多线程并发模型去做。这样就可以大幅度减少线程的创建切换的资源耗费。<br />
+如：nginx + php-fpm（其实是php-fpm是多进程）</p>
+<h4>第二代服务器模型</h4>
+<p>第二代服务器模型是把应用层也使用IO多路复用去处理，减少应用层的等待外部接口调用阻塞等待，一般是大厂大流量并发需要用到。<br />
+如：  </p>
+<ol>
+<li>nodejs的异步回调  </li>
+<li>Go的goroutine</li>
+</ol>
+<p><br><br />
+参考资料：<br />
+[1]：<a href="https://www.zhihu.com/question/64727674/answer/225113965">许怀远的知乎回答</a><br />
+[2]：<a href="https://segmentfault.com/a/1190000003063859">Linux IO模式及 select、poll、epoll详解</a></p>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/server.html" rel="category">server</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/server.html" rel="tag">server</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: '376e17250e1896434f0e950dc7b35515',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>docker学习系列（二）：使用Dockerfile创建自己的镜像|Sbb-Blog</title>
+	<meta name="keywords" content="Linux,Docker,Sbb-Blog">
+	<meta name="description" content="使用dockerfile创建自己的镜像。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/docker/docker2.html" rel="bookmark">docker学习系列（二）：使用Dockerfile创建自己的镜像 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-03-01</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-3-1
+title: docker学习系列（二）：使用Dockerfile创建自己的镜像
+tags: Linux Docker
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Docker
+status: publish
+summary: 使用dockerfile创建自己的镜像。
+-->
+<p>dockerfile可以允许我们自己创建镜像，通过编写里面的下载软件命令，执行docker build 即可生成镜像文件。</p>
+<h2>初尝dockerfile</h2>
+<p>新建一个目录test，然后进入这个目录，创建一个名为Dockerfile的文件，在里面写入以下内容：</p>
+<pre><code>FROM alpine:latest
+MAINTAINER sbb
+CMD echo "hello world"</code></pre>
+<p>然后执行下面命令就会生成docker镜像。</p>
+<pre><code>$ docker build -t hello-world .</code></pre>
+<p>执行docker run hello-world 就会输出hello world了。<br />
+可能会有童鞋会问上面写的是什么，下面会根据命令讲解的。</p>
+<h2>dockerfile命令</h2>
+<p>dockerfile的指令分为两种：构建指令和设置指令。<br />
+构建命令：用于构建镜像的时候执行的，不会在该镜像上的容器里执行。  设置命令：用于设image的属性，将会在运行的容器里执行。</p>
+<h4>FROM</h4>
+<p>指定基础image，其实大部分镜像都是基于另一个镜像的基础上去进行修改的，比如说我这个apt-get安装的nginx是基于ubuntu的（上面例子里的alpine是docker提供的最小镜像），这个命令需要放在最前面。<br />
+命令格式如下：</p>
+<pre><code>FROM 镜像名字:版本</code></pre>
+<h4>MAINTAINER</h4>
+<p>构建命令，用于指定创建者是谁。</p>
+<h4>RUN</h4>
+<p>构建命令，RUN可以运行全部被基础镜像支持的命令,常用于搭建环境。</p>
+<pre><code>RUN apt-get update
+RUN apt-get install -y nginx</code></pre>
+<h4>CMD</h4>
+<p>设置命令，在docker容器启动时候执行的命令，多个CMD命令存在的话只会运行最后一个CMD命令，因此只需要写一个CMD命令即可。CMD命令有三种执行方式</p>
+<pre><code># 方式一，运行一个可执行文件，并提供参数(like an exec, this is the preferred form)
+CMD ["executable","param1","param2"] 
+# 方式二，利用”/bin/sh -c”去执行， (as a shell)
+CMD command param1 param2
+# 方式三，作为ENTRYPOINT的默认参数
+CMD ["param1", "param2"]</code></pre>
+<p>在使用docker run imagename  command新建并启动容器的时候，command会替换dockerfile里的CMD命令，如上面我们创建的docker镜像，如果后面输入了hello docker，则不会输出hello world了，本来dockerfile里面指定了输出hello world。</p>
+<pre><code>$ docker run hello_docker echo "hello docker"
+hello docker
+$ docker run hello_docker                    
+hello world</code></pre>
+<h4>ENTRYPOINT</h4>
+<p>设置命令，在docker容器启动时候执行的命令，一个dockerfile只能有一个ENTRYPOINT命令，有两种执行方式：</p>
+<pre><code>ENTRYPOINT ["executable", "param1", "param2"] 
+ENTRYPOINT command param1 param2 </code></pre>
+<p>和CMD命令很相似，但是区别在于docker run imagename command的时候，command部分是作为参数传给ENTRYPOINT的。</p>
+<h4>USER</h4>
+<p>指定允许启动的用户，默认是root</p>
+<h4>EXPOSE</h4>
+<p>指定容器要暴露的端口，常用于一些需要通信的应用，如nginx，就会在dockerfile指定暴露80端口，或者在docker run时指定 --expose=1234，这两种方式作用相同，但是--expose可以接受区间范围的端口作为参数。</p>
+<p>注意expose暴露的是容器的端口，如果外面主机需要通过端口连接到这个服务，需要进行一个映射，把容器的端口映射到主机的端口。</p>
+<pre><code>docker run -p 本地端口:暴露端口 镜像</code></pre>
+<p>最后附上一个简单创建nginx的dockerfile</p>
+<pre><code>FROM ubuntu
+MAINTAINER sbb
+RUN apt-get update
+RUN apt-get install -y nginx
+ENTRYPOINT ["/usr/sbin/nginx", "-g", "daemon off;"]
+EXPOSE 80</code></pre>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Docker.html" rel="category">Docker</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Linux.html" rel="tag">Linux</a></li>
+                   <li><a href="/tags/Docker.html" rel="tag">Docker</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'eda8efd49008526e5179f137463b874e',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

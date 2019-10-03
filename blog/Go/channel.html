@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Golang学习笔记：channel|Sbb-Blog</title>
+	<meta name="keywords" content="Go,并发,Sbb-Blog">
+	<meta name="description" content="channel是go里的goroutine通信的主要工具，简述channel的基本使用技巧。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/Go/channel.html" rel="bookmark">Golang学习笔记：channel </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-04-26</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-4-26
+title: Golang学习笔记：channel
+tags: Go 并发
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Go
+status: publish
+summary: channel是go里的goroutine通信的主要工具，简述channel的基本使用技巧。 
+-->
+<h2>channel</h2>
+<p>channel是goroutine之间的通信机制，它可以让一个goroutine通过它给另一个goroutine发送数据，每个channel在创建的时候必须指定一个类型，指定的类型是任意的。<br />
+使用内置的make函数，可以创建一个channel类型：</p>
+<pre><code>ch := make(chan int)</code></pre>
+<h2>发送和接受</h2>
+<p>channel主要的操作有发送和接受：</p>
+<pre><code>// 发送数据到channel
+ch &lt;- 1
+// 从channel接受数据
+x := &lt;- ch</code></pre>
+<p>如向channel发送数据的时候，该goroutine会一直阻塞直到另一个goroutine接受该channel的数据，反之亦然，goroutine接受channel的数据的时候也会一直阻塞直到另一个goroutine向该channel发送数据，如下面操作：</p>
+<pre><code>func main() {
+    ch := make(chan string)
+    // 在此处阻塞，然后程序会弹出死锁的报错
+    c &lt;- "hello"
+    fmt.Println("channel has send data")
+}</code></pre>
+<p>正确的操作：</p>
+<pre><code>func main() {
+    ch := make(chan string)
+    go func(){
+        // 在执行到这一步的时候main goroutine才会停止阻塞
+        str := &lt;- ch
+        fmt.Println("receive data：" + str)
+    }()
+    ch &lt;- "hello"
+    fmt.Println("channel has send data")
+}</code></pre>
+<p>说到channel的阻塞，就不得不说到有缓冲的channel。</p>
+<h2>带缓冲的channel</h2>
+<p>带缓冲的channel的创建和不带缓冲的channel（也就是上面用的channel）的创建差不多，只是在make函数的第二个参数指定缓冲的大小。</p>
+<pre><code>// 创建一个容量为10的channel
+ch := make(chan int, 10)</code></pre>
+<p>带缓冲的channel就像一个队列，遵从先进先从的原则，发送数据向队列尾部添加数据，从头部接受数据。<br />
+<img src="/blog/img/Go/channel1.png" alt="image" /></p>
+<p>goroutine向channel发送数据的时候如果缓冲还没满，那么该goroutine就不会阻塞。</p>
+<pre><code>ch := make(chan int, 2)
+// 前面两次发送数据不会阻塞，因为缓冲还没满
+ch &lt;- 1
+ch &lt;- 2
+// goroutine会在这里阻塞
+ch &lt;- 3</code></pre>
+<p>反之如果接受该channel数据的时候，如果缓冲有数据，那么该goroutine就不会阻塞。</p>
+<p>channel与goroutine之间的应用可以想象成某个工厂的流水线工作，流水线上面有打磨，上色两个步骤（两个goroutine），负责打磨的工人生产完成后会传给负责上色的工人，上色的生产依赖于打磨，两个步骤之间的可能存在存放槽（channel），如果存放槽存满了，打磨工人就不能继续向存放槽当中存放产品，直到上色工人拿走产品，反之上色工人如果把存放槽中的产品都上色完毕，那么他就只能等待新的产品投放到存放槽中。</p>
+<h4>备注</h4>
+<p>其实在实际应用中，带缓冲的channel用的并不多，继续拿刚才的流水线来做案例，如果打磨工人生产速度比上色工人工作速度要快，那么即便再多容量的channel，也会迟早被填满然后打磨工人会被阻塞，反之如果上色工人生产速度大于打磨工人速度，那么有缓冲的channel也是一直处于没有数据，上色工人很容易长时间处于阻塞的状态。</p>
+<p>因此比较好的解决方法还是针对生产速度较慢的一方多加人手，也就是多开几个goroutine来进行处理，有缓冲的channel最好用处只是拿来防止goroutine的完成时间有一定的波动，需要把结果缓冲起来，以平衡整体channel通信。</p>
+<h2>单方向的channel</h2>
+<p>使用channel来使不同的goroutine去进行通信，很多时候都和消费者生产者模式很相似，一个goroutine生产的结果都用channel传送给另一个goroutine，一个goroutine的执行依赖与另一个goroutine的结果。<br />
+因此很多情况下，channel都是单方向的，在go里面可以把一个无方向的channel转换为只接受或者只发送的channel，但是却不能反过来把接受或发送的channel转换为无方向的channel，适当地把channel改成单方向，可以达到程序强约束的做法，类似于下面例子：</p>
+<pre><code>fuc main(){
+    ch := make(ch chan string)
+
+    go func(out chan&lt;- string){
+        out &lt;- "hello"
+    }(ch)
+
+    go func(in &lt;-chan string){
+        fmt.Println(in)
+    }(ch)
+
+    time.Sleep(2 * time.Second)
+}</code></pre>
+<h2>select多路复用</h2>
+<p>在一个goroutine里面，对channel的操作很可能导致我们当前的goroutine阻塞，而我们之后的操作都进行不了。而如果我们又需要在当前channel阻塞进行其他操作，如操作其他channel或直接跳过阻塞，可以通过select来达到多个channel（可同时接受和发送）复用。如下面我们的程序需要同时监听多个频道的信息：</p>
+<pre><code>broadcaster1 := make(chan string) // 频道1
+broadcaster2 := make(chan string) // 频道2
+select {
+    case mess1 := &lt;-broadcaster1:
+        fmt.Println("来自频道1的消息：" + mess1)
+    case mess2 := &lt;-broadcaster2:
+        fmt.Println("来自频道2的消息：" + mess2)
+    default:
+        fmt.Println("暂时没有任何频道的消息，请稍后再来~")
+        time.Sleep(2 * time.Second)
+}</code></pre>
+<p>select和switch语句有点相似，找到匹配的case执行对应的语句块，但是如果有两个或以上匹配的case语句，那么则会随机选择一个执行，如果都不匹配就会执行default语句块（如果含有default的部分的话）。</p>
+<p><font color=red>值得注意的是，select一般配合for循环来达到不断轮询管道的效果，可能很多小伙伴想着写个在某个case里用break来跳出for循环，这是不行的，因为break只会退出当前case，需要使用return来跳出函数或者弄个标志位标记退出</font></p>
+<pre><code>var flag = 0
+for {
+    if flag == 1 {break}
+    select {
+        case message := &lt;- user.RecMess :
+            event := gjson.Get(string(message), "event").String()
+            if event == "login" {
+                Login(message, user)
+            }
+            break
+        case &lt;- user.End :
+            flag = 1
+            break
+    }
+}
+</code></pre>
+<h2>关闭</h2>
+<p>channel可以接受和发送数据，也可以被关闭。</p>
+<pre><code>close(ch)</code></pre>
+<p>关闭channel后，所有向channel发送数据的操作都会引起panic，而被close之后的channel仍然可以接受之前已经发送成功的channel数据，如果数据全部接受完毕，那么再从channel里面接受数据只会接收到零值得数据。</p>
+<p>channel的关闭可以用来操作其他goroutine退出，在运行机制方面，goroutine只有在自身所在函数运行完毕，或者主函数运行完毕才会打断，所以我们可以利用channel的关闭作为程序运行入口的一个标志位，如果channel关闭则停止运行。</p>
+<p>无法直接让一个goroutine直接停止另一个goroutine，但可以使用<font color=red>通信</font>的方法让一个goroutine停止另一个goroutine，如下例子就是程序一边运行，一边监听用户的输入，如果用户回车，则退出程序。</p>
+<pre><code>func main() {
+    shutdown := make(chan struct{})
+    var n sync.WaitGroup
+    n.Add(1)
+    go Running(shutdown, &amp;n) 
+    n.Add(1)
+    go ListenStop(shutdown, &amp;n) 
+    n.Wait()
+}
+
+func Running(shutdown &lt;-chan struct{}, n *sync.WaitGroup) {
+    defer n.Done()
+    for {
+        select {
+        case &lt;-shutdown:
+            // 一旦关闭channel，则可以接收到nil。
+            fmt.Println("shutdown goroutine")
+            return
+        default:
+            fmt.Println("I am running")
+            time.Sleep(1 * time.Second)
+        }   
+    }   
+}
+
+func ListenStop(shutdown chan&lt;- struct{}, n *sync.WaitGroup) {
+    defer n.Done()
+    os.Stdin.Read(make([]byte, 1)) 
+    // 如果用户输入了回车则退出关闭channel
+    close(shutdown)
+}</code></pre>
+<p>利用channel关闭时候的传送的零值信号可以有效地退出其他goroutine，特别是关闭多个goroutine的时候，就不需要向channel传输多个信息了。</p>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Go.html" rel="category">Go</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Go.html" rel="tag">Go</a></li>
+                   <li><a href="/tags/%E5%B9%B6%E5%8F%91.html" rel="tag">并发</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: '5a88f8d99a06a32026b755e12194094a',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

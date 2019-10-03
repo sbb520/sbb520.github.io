@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>统计学：概率论|Sbb-Blog</title>
+	<meta name="keywords" content="statistics,probability,Sbb-Blog">
+	<meta name="description" content="最近对数据分析有点兴趣，所以准备好好地学习统计学，而概率论支持着很多统计学的理论，因此概率论是非常重要的一门学科。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/Statistics/probability.html" rel="bookmark">统计学：概率论 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2019-10-02</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2019-10-02
+title: 统计学：概率论
+tags: statistics probability
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: statistics
+status: publish
+summary: 最近对数据分析有点兴趣，所以准备好好地学习统计学，而概率论支持着很多统计学的理论，因此概率论是非常重要的一门学科。
+-->
+<p>最近对数据分析有点兴趣，所以准备好好地学习统计学，而概率论支持着很多统计学的理论，因此概率论是非常重要的一门学科。</p>
+<h2>1. 基本概念</h2>
+<h3><strong>互斥与不互斥</strong></h3>
+<p>一般而言，互斥与不互斥是针对<strong>某次事件</strong>的发生结果而言。</p>
+<p>互斥：事件A和事件B不可能同时发生，那么称事件<strong>A和B互斥</strong>（mutually exclusive）。反之则<strong>不互斥</strong>（not mutually exclusive）。</p>
+<p>例如说抽一张扑克牌，这张牌不可能既是“<strong>黑桃</strong>”又是“<strong>红心</strong>”，因此两种事件，也就是2种事件<strong>互斥</strong>。</p>
+<p><img src="/blog/img/statistics/probability/mutually_exclusive.png" alt="" /></p>
+<p>但针对“<strong>黑桃</strong>”，“<strong>数字3</strong>”这两个事件，是有可能同时发生的，因此这两种事件不是互斥的。</p>
+<p><img src="/blog/img/statistics/probability/not_mutually_exclusive.png" alt="" /></p>
+<h3><strong>独立与不独立</strong></h3>
+<p>独立与不独立一般是针对<strong>两个事件</strong>（A和B）之间的独立性，如果事件A的发生不受事件B的影响，那么就是<strong>独立事件</strong>(independent event)，如投两次硬币，第一次的结果不会影响到第二次，否则就是<strong>非独立事件</strong>(dependent event)，如学历与收入，抽到的牌是黑桃和数字。</p>
+<h2>2. 常见概念</h2>
+<p>下面介绍几种概率论里面必要的概念。</p>
+<h3><strong>联合概率</strong></h3>
+<p>联合概率（joint probability），用P(AB)来表示，表示A和B共同发生的概率。</p>
+<blockquote>
+<p>对于独立事件：P(AB) = P(A) * P(B)</p>
+<p>对于非独立事件：P(AB) = P(A|B) <em> P(B) = P(B|A) </em> P(A)</p>
+</blockquote>
+<h3><strong>条件概率</strong></h3>
+<p>条件概率（conditional probability），也叫后验概率，也就是某个事件（设A）在另一个事件（设B）已发生的情况下，发生的概率，用P(A|B)表示：</p>
+<blockquote>
+<p>对于独立事件：P(A|B) = P(A)</p>
+<p>对于非独立事件：P(A|B) = P(AB) / P(B) </p>
+</blockquote>
+<h3><strong>随机变量</strong></h3>
+<p>随机变量（random variable）是指随机事件的发生数量，其中分为离散型（discrete）和连续型（continuous）。</p>
+<p>离散型是指发生的事件在一定区间内的取值是有限个。</p>
+<p>如掷骰子，只有1，2，3，4，5，6这四种情况。</p>
+<p><img src="https://gss1.bdstatic.com/9vo3dSag_xI4khGkpoWK1HF6hhy/baike/s%3D250/sign=680634bb828ba61edbeecf2a713497cc/d1160924ab18972b0d3432bbe6cd7b899e510ab0.jpg" alt="随机变量" /></p>
+<p>连续型是指一定区间可以取无数个，如人的身高，可以取身高曲线上的某个点。</p>
+<p><img src="https://gss0.bdstatic.com/94o3dSag_xI4khGkpoWK1HF6hhy/baike/s%3D220/sign=634ebfcaf736afc30a0c38678319eb85/0bd162d9f2d3572c71de6ed68a13632762d0c3f8.jpg" alt="正态分布研究图3" /></p>
+<h3><strong>期望值</strong></h3>
+<p>期望值（expected value）就是随机实验进行很多次，得到的全部值的平均值，就是期望值E(x)，如掷骰子，期望值计算如下：</p>
+<p>![](/blog/img/statistics/probability/expected value example.svg)</p>
+<p>一般而言，对于离散型的变量，我们用以下公式计算：</p>
+<p><img src="/blog/img/statistics/probability/expected_value_discrete_formula.svg" alt="" /></p>
+<p>而针对连续型的变量，我们一般会根据他的概率函数做一个密度（微积分）计算从而得出期望值。</p>
+<p><img src="/blog/img/statistics/probability/expected_value_continuous_formula.svg" alt="" /></p>
+<h3><strong>方差</strong></h3>
+<p>方差（variance）用来表示个体数据的离散程度，有时候也用σ^2来表示，计算方式如下：</p>
+<p><img src="/blog/img/statistics/probability/variance_formula.svg" alt="" /></p>
+<p>具体原理就是累加每个值于平均值的距离，至于为什么要用平方来计算单个的距离值，因为距离可以是正和负，平方值的话可以解决这个问题。</p>
+<h3><strong>标准差</strong></h3>
+<p>标准差（standard deviation）就是对方差进行平方，这里不做详细描述。</p>
+<h2>3. 贝叶斯定理</h2>
+<p>贝叶斯定理（Bayes' theorem）用于计算在某个事情（如A）下，某个事情（如B）发生的概率。</p>
+<p>可以理解为基本用于非独立事件之间的条件概率计算，公式如下：</p>
+<p><img src="/blog/img/statistics/probability/Bayes_theorem1.svg" alt="" /></p>
+<p>有些还会把P(B)单独拆分，变成如下样子：</p>
+<p><img src="/blog/img/statistics/probability/Bayes_theorem2.svg" alt="" /></p>
+<p>从根本上来说，贝叶斯定理就是在已知<strong>先验概率</strong>(设P(A))以及某些<strong>特定条件概率</strong>的情况下，计算<strong>后验概率</strong>（条件概率P(A|B)）。</p>
+<p>设你去省医院检查，医院结果显示你呈弱阳性，进一步的结果需要送到国家级的医院进行进一步的检查，但你可能已经吓到半死了。</p>
+<p><img src="/blog/img/statistics/probability/bayes_theorem_example1.png" alt="" /></p>
+<p>但你不太死心，感觉自己平时生活习惯良好，不太可能患上XX癌症呀，于是拼命上各种论坛去查案例，发现了一张最新的国家医院体检统计如下：</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>概率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>xx癌症患病的人，设A</td>
+<td>1%</td>
+</tr>
+<tr>
+<td>省医院结果为阳性的概率，设B</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>患有xx癌症的人，其结果为阳性的概率，设B|A</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>体检结果为阳性，其患有xx癌症的概率，设A|B</td>
+<td>?%</td>
+</tr>
+</tbody>
+</table>
+<p>根据贝叶斯概率计算，你的患病概率为<strong>P(A|B) = P(A) * P(B|A) / P(B) = 9%</strong>，然后你可以相对来说送一口气。毕竟看上去没有那么吓人了，这是因为你知道了阳性的结果，且不是全部的阳性都是患病，他们是有交集的。求得P(A|B)其实就是求橙色部分在绿色部分的面积。</p>
+<p><img src="/blog/img/statistics/probability/bayes_theorem_example2.png" alt="" /></p>
+<p>上面的例子可能不太恰当，但在现实生活，有很多的医学上会用到贝叶斯定理，比如说问你判断你是否患有癌症，先问你是否喉咙痛，根据以往的记录喉咙痛的话患癌症的概率会大幅度提高，其实作用就是不停地通过各种条件去细化这个概率。</p>
+<h2>4. 二项分布</h2>
+<p>二项分布（binomial distribution）是由n次的独立的伯努利实验中成功的离散概率分布，那么伯努利实验又是什么呢？</p>
+<h3><strong>伯努利分布</strong></h3>
+<p>其实伯努利实验很简单，就是每次事件出现的结果只有互斥的两种，例如投硬币，这就是一个典型的伯努利实验，一般伯努利实验会设出现的结果为<strong>失败（0）和成功（1）</strong>，随机变量出现1的概率为<strong>p</strong>，出现0的概率为<strong>1-p</strong>。</p>
+<p>伯努利分布长这样子：</p>
+<p><img src="/blog/img/statistics/probability/Bernoulli_distribution.png" alt="" /></p>
+<p>举个例子：</p>
+<p>某人打靶，成功的概率为0.8，失败的概率为0.2，那么这个分布图就和上面展示的一样了。</p>
+<h3><strong>二项分布</strong></h3>
+<p>二项分布就是做n次伯努利实验，统计成功的次数和概率，根据两个参数画出分布图。</p>
+<p>一般人们会用这个公式去计算<strong>n次实验中，成功k次的概率</strong>的概率，其中<strong>成功概率为p</strong>：</p>
+<p><img src="/blog/img/statistics/probability/binomial_distribution_formula.svg" alt="" /></p>
+<p>其中公式中的(n k)是代表组合。</p>
+<p>举个例子，设我投6次硬币，投出3次正面的概率根据上面的计算为0.3125。</p>
+<p>然后我会整理出现1，2，3，4，5，6次正面的概率，并把它们列成图形，就会下图所示。</p>
+<p><img src="/blog/img/statistics/probability/binomial_distribution.png" alt="" /></p>
+<h2>6. 泊松分布</h2>
+<p>泊松分布（possion distribution）用于描述单位时间内随机事件发生次数的概率分布。公式如下：</p>
+<p><img src="/blog/img/statistics/probability/possion_distribution.svg" alt="" /></p>
+<p>一般用来统计独立且概率是离散型的事件。</p>
+<p>如商场一天之内平均销售10个名牌手袋，请问一天之内售出11个名牌手袋的概率是多少？根据泊松分布，我们可以轻易算出概率为0.1137。</p>
+<h2>7. 指数分布</h2>
+<p>指数分布（exponential distribution）用以算出独立事件发生的时间间隔。计算的公式如下：</p>
+<p><img src="/blog/img/statistics/probability/exponential_distribution_formula.svg" alt="" /></p>
+<p>如某个商店平均每小时卖出3个手袋，那么请问半小时内能卖出手袋的概率是多少？</p>
+<p>所算的概率就是P(x&lt;= 1/2 ) = 1 - e^(-3*1/2) = 0.7769</p>
+<h2>8. 正态分布</h2>
+<p>现实生活中，很多事件的总体（如人的身高）都会遵守着一个正态分布。很多正面和负面的因素累加起来，会使得总体样本的数据趋向于正态分布。</p>
+<blockquote>
+<p><strong>根据中心极限定理，如果一个事物受到多种因素的影响，不管每个因素本身是什么分布，它们加总后，结果的平均值就是正态分布。</strong></p>
+</blockquote>
+<p><img src="/blog/img/statistics/probability/normal_distribution_example1.jpg" alt="" /></p>
+<p>要注意的是，正态分布是用于处理连续型的概率，刚刚所介绍的分布都是处理离散型的概率。</p>
+<h3><strong>定义</strong></h3>
+<p>若随机变量X服从一个数学期望为μ，方差为σ^2的正态分布。</p>
+<p>则记为<strong>N(μ, σ^2)</strong></p>
+<p>其中μ决定了正态分布的位置，σ决定了正态分布的幅度。</p>
+<p><img src="/blog/img/statistics/probability/normal_distribution_schema.png" alt="" /></p>
+<p>其概率密度函数为</p>
+<p><img src="/blog/img/statistics/probability/normal_distribution_value_formula.svg" alt="" /></p>
+<p>公式的意义就是计算抽取的值低于或等于x的概率是多少。</p>
+<p>如下图，我们可以用这个公式计算得出下面正态分布，值小于或等于0的概率为0.5</p>
+<p><img src="/blog/img/statistics/probability/normal_distribution_schema2.png" alt="" /></p>
+<h3><strong>数据标准化</strong></h3>
+<p>在说标准化正态分布之前，有必要先了解一下数据标准化的意义，因为网上很多文章没有说明白这个概念。之所以要进行数据标准化，其实是可以把数据放在<strong>同一个标准</strong>下面，可以方便比对。其中有一种著名的方法叫做z-score，标准化完之后，整体会服从平均值为0，标准差为1，公式如下：</p>
+<p><img src="/blog/img/statistics/probability/z-score.svg" alt="" /></p>
+<p>举个例子，某次考试有英语和语文，小明考了70分语文，90分英语，按照常理来说，会说小明的英语比语文要好，但是如果那天的考试语文很难，大部分学生只有50-60分，英语却很简单，大部分人都有90分，那么我们要怎么说明白小明的语文要比英语好呢？</p>
+<p>而z-score就考虑到了总体的平均值（μ）和离散程度（σ）。从而计算出更加合理的分数机制。</p>
+<p>下图引用漫画统计学的一个例子，一个人历史得了73分，一个人生物得到73分，可以通过标准分来对比之间的价值。</p>
+<p><img src="/blog/img/statistics/probability/z-score_example.png" alt="1569994965678" /></p>
+<h3><strong>标准化正态分布</strong></h3>
+<p>标准化正态分布就是服从N(0,1)的正态分布，且值和对应的概率如下表所示：</p>
+<p><img src="/blog/img/statistics/probability/standard_normal_distribution_possibility.png" alt="" /></p>
+<p>这是因为如果使用概率密度函数来计算概率的话，在以前没有计算机的时代是基本不敢想象的。旧时的人们想了一个方法，就是把要统计的数据标准化一下，再去根据上面的标准化正态表的值对应的概率，可以比较方便知道概率是多少了。</p>
+<p>以下例子转载自数学乐</p>
+<p>例子：求总体在 0 和 0.45 之间的百分比</p>
+<p>在 0.4 的行开始，向右去到 0.45 ，来找到 0.1736 这个值0.1736 是 <strong>17.36%</strong>，所以总体的 17.36% 是在离平均值 0 到 0.45个标准差之间。 </p>
+<p><img src="https://www.shuxuele.com/data/images/standard-normal-distribution-0-45.gif" alt="标准正态分布 0.45 = 0.1736" /></p>
+<p>因为曲线是对称的，我们可以用这个表来查看负值：−0.45 的面积也是 0.1736。</p>
+<p>更详细的计算可以去<a href="https://www.shuxuele.com/data/standard-normal-distribution-table.html">这里</a>看，计算的过程稍微想一下就明白了。</p>
+<h3><strong>连续性修正</strong></h3>
+<p>但是如果二项分布的实验次数相对较大，那么可以用<strong>连续性修正</strong>来接近正态分布，从而方便计算概率，这里就不详细说明了。。</p>
+<p>参考资料：</p>
+<ol>
+<li>维基百科</li>
+<li>百度百科</li>
+<li><a href="https://www.shuxuele.com/data/standard-normal-distribution-table.html">数学乐-标准正态分布</a></li>
+<li>统计学-日本学习漫画</li>
+<li>深入浅出统计学(headfirst)</li>
+<li><a href="http://www.ruanyifeng.com/blog/2017/08/normal-distribution.html">正态分布--阮一峰</a></li>
+<li><a href="https://www.cnblogs.com/vamei/p/3198371.html">vamei博客</a>  </li>
+</ol>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/statistics.html" rel="category">statistics</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/statistics.html" rel="tag">statistics</a></li>
+                   <li><a href="/tags/probability.html" rel="tag">probability</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: '7a936c6cfcaa4bb62b92db279e21c458',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

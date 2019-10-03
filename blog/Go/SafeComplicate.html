@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>如何做到资源并发安全|Sbb-Blog</title>
+	<meta name="keywords" content="Go,并发,Sbb-Blog">
+	<meta name="description" content="结合一些常见的做法，本文整理了一下如何做到并发安全。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/Go/SafeComplicate.html" rel="bookmark">如何做到资源并发安全 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-05-08</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-5-08
+title: 如何做到资源并发安全
+tags: Go 并发
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Go
+status: publish
+summary: 结合一些常见的做法，本文整理了一下如何做到并发安全。
+-->
+<h2>并发安全</h2>
+<p>何为并发安全，就是多个并发体在同一段时间内访问同一个共享数据，共享数据能被正确处理。</p>
+<h2>并发不安全的后果</h2>
+<p>并发不安全最典型的案例就是卖票超售，设想有一家电影院，有两个售票窗口，售票员售票时候先看一下当前剩余票数是否大于0，如果大于0则售出票。<br />
+用伪代码就是如下：</p>
+<pre><code># 售票操作（一张票）
+# 如果票数大于0
+totalNum = getTotalNum()
+if totalNum &gt; 0
+    # 则售出一张票
+    totalNum = totalNum - 1
+else
+    failedToSold()</code></pre>
+<p>看上去也没有什么问题，流程图如下:<br />
+<img src="/blog/img/Go/SafeComplicate1.jpg" alt="jpg" /><br />
+此时票数剩下一张票，两个售票窗口同时来了顾客，两个售票人都看了一下剩余票数还有一张，不约而同地收下顾客的钱，余票还剩一张，但是却售出了两张票，就会出现致命的问题。<br />
+<img src="/blog/img/Go/SafeComplicate2.jpg" alt="jpg" />  </p>
+<h2>如何做到并发安全</h2>
+<p>目前最最主流的办法就是加锁就行操作，其实售票的整个操作同时间内只能一个人进行，在我看来归根到底加锁其实就是让查询和售票两个步骤原子化，只能一块执行，不能被其他程序中断，让这步操作变成串行化。下面就介绍一下使查询和售票原子化的常见程序操作：</p>
+<h2>锁</h2>
+<p>锁的做法就是每次进入这段变量共享的程序片段，都要先获取一下锁，如果获取成功则可以继续执行，如果获取失败则阻塞，直到其他并发体把锁给释放，程序得到执行调度才可以执行下去。<br />
+锁本质上就是让并发体创建一个程序临界区，临界区一次只能进去一个并发体，伪代码示意如下：</p>
+<pre><code>lock()
+totalNum = getTotalNum()
+if totalNum &gt; 0
+    # 则售出一张票
+    totalNum = totalNum - 1
+else
+    failedToSold()
+unlock()</code></pre>
+<p>顺带一提的是锁可以分为写锁与排它锁，一般如无特殊说明，一般锁都是指写锁。</p>
+<h3>读锁与写锁</h3>
+<p>读锁也叫共享锁，写锁也叫排它锁，锁的概念被发明了之后，人们就想着如果我很多个并发体大部分时间都是读，如果就把变量读取的时候也要建立临界区，那就有点太大题小做了。于是人们发明了读锁，一个临界区如果加上了读锁，其他并发体执行到相同的临界区都可以加上读锁，执行下去，但不能加上写锁。这样就保证了可以多个并发体并发读取而又不会互相干扰。</p>
+<h2>队列</h2>
+<p>队列也是解决并发不安全的做法。多个并发体去获取队列里的元素，然后进行处理，这种做法和上锁其实大同小异，本质都是把并发的操作串行化，同一个数据同一个时刻只能交给一个并发体去处理。<br />
+伪代码：</p>
+<pre><code># 第一个获取到队列的元素就可以进行下去
+isCanSold = canSoldList.pop()
+totalNum = getTotalNum()
+if totalNum &gt; 0
+    # 则售出一张票
+    totalNum = totalNum - 1
+else
+    failedToSold()</code></pre>
+<h2>CAS</h2>
+<p>CAS（compare and swap），先比对，然后再进行交换，和数据库里的乐观锁的做法很相似。</p>
+<h3>乐观锁</h3>
+<p>数据库里的乐观锁并不是真的使用了锁的机制，而是一种程序的实现思路。<br />
+乐观锁的想法是，每次拿取数据再去修改的时候很乐观，认为其他人不会去修改这个数据，表另外维护一个额外版本号的字段。<br />
+查数据的时候记录下该数据的版本号，如果成功修改的话，会修改该数据的版本号，如果修改的时候版本号和查询的时候版本号不一致，则认为数据已经被修改过，会重新尝试查询再次操作。<br />
+设我们表有一个user表，除了必要的字段，还有一个字段version，表如下：  </p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>username</th>
+<th>money</th>
+<th>version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>a</td>
+<td>10</td>
+<td>100</td>
+</tr>
+<tr>
+<td>2</td>
+<td>b</td>
+<td>20</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<p>这时候我们需要修改a的余额-10元，执行事务语句如下：</p>
+<pre><code>while
+    select @money = money, @version = version from user where username = a;
+    if @money &lt; 10
+        print('余额成功')
+        break
+    # 扣费前的预操作
+    paied()
+    # 实行扣费
+    update user set money = money - 10, version = version + 1 where username = a and version = @version
+    # 影响条数等于1，证明执行成功
+    if @@ROWCOUNT == 1
+        print('扣费成功')
+        break
+    else
+        rollback
+        print('扣费失败，重新进行尝试')
+</code></pre>
+<p>乐观锁的做法就是使用版本的形式，每次写数据的时候会比对一下最开始的版本号，如果不同则证明有问题。<br />
+CAS的做法也是一样的，在代码里面的实现稍有一点不同，由于SQL每条语句都是原子性，查询对应版本号的数据再更新的这个条件是原子性的。</p>
+<pre><code>update user set money = money - 10, version = version + 1 where username = a and version = @version</code></pre>
+<p>但是在代码里面两条查询和赋值两个语句不是原子性的，需要有特定的函数让cpu底层把两个操作变成一个原子操作，在go里面有atomic包支持实现，是这样实现的：</p>
+<pre><code>for {
+    user := getUserByName(A)
+    version := user.version
+    paied()
+    if atomic.CompareAndSwapInt32(&amp;user.version, version, version + 1) {
+        user.money -= 10
+    } else {
+        rollback()
+    }
+}</code></pre>
+<p>atomic.CompareAndSwapInt32需要依次传入要比较变量的地址，旧变量的值，修改后变量的值，函数会判断旧变量的值是否与现在变量的地址是否相同，相同则把新变量的值写入到该变量。<br />
+CAS的好处是不需要程序去创建临界区，而是让CPU去把两个指令变成原子性操作，性能更好，但是如果变量会被频繁更改的话，重试的次数变多反而会使得效率不如加锁高。</p>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Go.html" rel="category">Go</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Go.html" rel="tag">Go</a></li>
+                   <li><a href="/tags/%E5%B9%B6%E5%8F%91.html" rel="tag">并发</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'da9f4f1cf7ebf3c968ac79aa5f117759',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

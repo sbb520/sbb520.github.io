@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>docker学习系列（一）：docker 基础|Sbb-Blog</title>
+	<meta name="keywords" content="Linux,Docker,Sbb-Blog">
+	<meta name="description" content="初学docker，记录何为docker以及应用场景，以及基本的使用方法。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/docker/docker1.html" rel="bookmark">docker学习系列（一）：docker 基础 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-03-01</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-3-1
+title: docker学习系列（一）：docker 基础
+tags: Linux Docker
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Docker
+status: publish
+summary: 初学docker，记录何为docker以及应用场景，以及基本的使用方法。
+-->
+<h2>一.简介</h2>
+<p>开发当中比较麻烦的问题在于软件配置，每个人的机械以及系统都不尽相同，程序需要运行在系统当中需要配置好相应的系统以及各种依赖的组件，但是很多时候由于各种软件依赖包的版本，系统兼容性问题会导致程序运行出现问题，人们便寻求一种可以解决这种问题的方法。</p>
+<h4>虚拟机</h4>
+<p>而虚拟机技术就是其中的一种解决方法,众所周知，虚拟机技术允许一种操作系统之上运行另一种操作系统，如win系统安装linux的虚拟机，而里面的运行程序却认为自己依旧运行在linux里面，因此用户只需要打包整个自己的运行环境，就可以在不同的系统利用虚拟机技术完美运行程序所需要的系统，而里面的程序更不在话下，且打包好的系统对于运行的系统而言只是一个文件，可以轻松管理。  </p>
+<p>但是虚拟机技术却有一种比较大的问题，那就是用户明明只需要运行某个程序，却需要引入该程序所处的整个系统，不但占用的空间很大，且启动速度也比较慢，毕竟需要启动整个系统。</p>
+<h3>容器技术</h3>
+<p>由于虚拟机存在这些缺点，Linux发展出了另一个虚拟技术：Linux容器，相对于虚拟机，Linux容器不是模仿一个完整的操作系统，而是对进程进行隔离。在这个容器里面，它接触到的资源都是虚拟的，他只需要它本身所需要的组件，相对于虚拟机技术而言，更轻量级，而docker就是对Linux容器的一种封装，提供给我们简单易用的接口，将应用程序以及依赖打包在一个文件里面。</p>
+<h2>二.安装docker</h2>
+<p>我是ubuntu系统，安装docker可以使用官方的快捷安装脚本进行安装。</p>
+<pre><code>$ wget -qO- https://get.docker.com/ | sh</code></pre>
+<p>但是我安装起来有点问题，在添加gbp的时候，所以我是安装<a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04">教程</a>一步步安装的。</p>
+<pre><code># 添加gbp，但是我按照官方教程执行有点问题，去掉最后一个-符号就可以执行
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+# 添加APT资源
+$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+$ sudo apt-get update
+# 查看源是否已经生效
+$ apt-cache policy docker-ce
+# 这时候应该输出类似于这种东西，如果没有这些输出的话，下面的安装就会找不到软件包了
+# docker-ce:
+#   Installed: (none)
+#   Candidate: 17.03.1~ce-0~ubuntu-xenial
+#   Version table:
+#      17.03.1~ce-0~ubuntu-xenial 500
+#         500 https://download.docker.com/linux/ubuntu xenial/stable amd64 Packages
+#      17.03.0~ce-0~ubuntu-xenial 500
+#         500 https://download.docker.com/linux/ubuntu xenial/stable amd64 Packages
+
+# 最后安装docker
+$ sudo apt-get install -y docker-ce
+# 安装之后执行以下命令有信息输出即证明成功
+$ sudo systemctl status docker
+</code></pre>
+<p>之后我们可以通过下载一个镜像来尝试运行hello world。</p>
+<pre><code>docker run ubuntu echo "Hello world"</code></pre>
+<h2>三.使用国内源</h2>
+<p>我们的docker在国内下载镜像并不会很流畅，所以我选择使用<a href="https://www.docker-cn.com/registry-mirror">国内官方的景象</a>。
+我直接新建文件：/etc/docker/daemon.json，然后添加如下json，重启docker即可永久选择国内镜像。</p>
+<pre><code>{
+  "registry-mirrors": ["https://registry.docker-cn.com"]
+}</code></pre>
+<h2>四.docker的基本概念</h2>
+<h3>1.image（镜像）</h3>
+<p>docker把应用程序以及其依赖，打包在image文件里面，docker容器是通过运行image生成的实例，同一个image文件可以生成多个容器实例。</p>
+<h3>2.container（容器）</h3>
+<p>container是一个docker的运行实例，也叫做容器，本身也是一个文件，可以理解容器实例就是通过渲染运行image镜像之后才产生的。值得注意的是生成容器之后，关闭容器不会删除该容器文件，该容器文件之后停止运行了而已。</p>
+<h2>五.基本命令</h2>
+<p>镜像操作</p>
+<pre><code># 查看当前本地镜像列表
+$ docker images
+# 查看远程相关镜像镜像
+$ docker search 镜像名字
+# 拉取镜像到本地
+$ docker pull 镜像名字
+# 删除镜像（当存在多个名字一样的镜像时候，可以通过指定tag方式来操作，如ubuntu:16.04）
+$ docker rmi 镜像名字</code></pre>
+<p>容器的基本操作</p>
+<pre><code># 创建一个docker容器，返回容器的id
+$ docker create 镜像名字
+# 运行docker容器
+$ docker start 容器id
+# 新建容器且运行，也就是上面两步一块执行。
+# 值得注意的是如果该镜像在本地不存在，会自动从源那里去拉取
+$ docker run 镜像名字
+# 停止容器
+$ docker stop 容器id
+# 查看当前运行的docker容器
+$ docker ps
+# 查看全部的docker容器
+$ docker ps -a
+# 删除容器
+$ docker rm 容器id</code></pre>
+<p>新建容器（docker run 镜像）常见可选参数：</p>
+<ol>
+<li>p：指定映射端口，如运行一个nginx服务，那么我可以设置 -p 8080:80来把本地的8080端口映射到容器里的80端口。</li>
+<li>d：容器作为一个守护进程去进行运行，也就是保持后台运行，运行后会返回cotainer id。</li>
+</ol>
+<p>容器与镜像间的操作</p>
+<pre><code># 终端连接到容器
+$ docker exec -i -t 容器id bash
+# 复制文件到容器里面
+$ docker cp index.html 镜像id://usr/share/nginx/html
+# 保存更改并生成为一个新的image文件
+$ docker commit -m "mess" 镜像id 镜像名字</code></pre>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Docker.html" rel="category">Docker</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Linux.html" rel="tag">Linux</a></li>
+                   <li><a href="/tags/Docker.html" rel="tag">Docker</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'c408ff212e41148fd289a25f9c01f30f',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>

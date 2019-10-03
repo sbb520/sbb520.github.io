@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>docker学习系列（五）：使用docker创建集成服务——lnmp|Sbb-Blog</title>
+	<meta name="keywords" content="Linux,Docker,Sbb-Blog">
+	<meta name="description" content="使用docker创建继承服务之lnmp，管理集成软件从此更轻松。">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/docker/docker5.html" rel="bookmark">docker学习系列（五）：使用docker创建集成服务——lnmp </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2018-03-22</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2018-3-22
+title: docker学习系列（五）：使用docker创建集成服务——lnmp
+tags: Linux Docker
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: Docker
+status: publish
+summary: 使用docker创建继承服务之lnmp，管理集成软件从此更轻松。
+-->
+<p>在掌握了docker的基本命令之后，我也是想着去用docker做一点实际的配套环境，就拿自己最常用的lnmp环境来做测试。配套环境运行的顺序依次是mysql-&gt;php-&gt;nginx，至于为什么，在下面会解释。</p>
+<h3>1.MySQL</h3>
+<p>之后服务运行的镜像如无特别的提示，都是从官方拉取的镜像，对于小企业以及个人开发者，官方的镜像更为安全，省心省力。</p>
+<pre><code># 拉取镜像
+$ docker pull mysql
+# 运行MySQL
+$ docker run --name mysql -d \
+        -p 3306:3306 \
+        -v /var/lib/mysql/:/var/lib/mysql/ \
+        -e MYSQL_ROOT_PASSWORD=yourdbpw \
+        MySQL</code></pre>
+<p>下面依次讲解上面运行各个参数  </p>
+<blockquote>
+<p>--name: 指定的运行的容器的名字<br />
+-d: 后台运行该容器<br />
+-p: 宿主机与容器的端口的映射<br />
+-v: 容器挂载到本地的目录映射<br />
+-e: 指定运行容器的环境变量</p>
+</blockquote>
+<h3>2.PHP</h3>
+<p>拉取官方镜像php-fpm，根据自己需要的php版本去下载，但是官方的镜像有些php常用的包没有包含在内，因此我们需要使用dockerfile去重新构建一下，下面是在Dockerfile里面安装mysqli和pdo两个php扩展包。</p>
+<pre><code>FROM php:7.1-fpm
+# Install modules
+RUN docker-php-ext-install mysqli &amp;&amp; docker-php-ext-enable mysqli
+RUN docker-php-ext-install pdo_mysql
+CMD ["php-fpm"]</code></pre>
+<p>运行php-fpm</p>
+<pre><code>docker run -d -p 9000:9000 \
+    --name php-fpm \
+    --link mysql \
+    -v /data/wwwroot/:/data/wwwroot/ \
+    php-fpm</code></pre>
+<p>注意参数当中的--link，这个参数在容器之间的连接十分有用，他会在当前容器的/etc/hosts里面添加一条域名解析，通过该域名可以连接到对应的容器，例如在上述的php-fpm里面，link到mysql，那么在php-fpm里面的php程序可以通过mysql字符串连接到刚刚运行的mysql容器，cat /etc/hosts就可以看到里面的解析记录了。</p>
+<pre><code>172.17.0.2  mysql b41d2569c06d</code></pre>
+<h3>3.Nginx</h3>
+<p>通过以下命令运行nginx，由于nginx需要通过127.0.0.1:9000端口去连接php-fpm来解析php文件，所以需要通过link来连接php-fpm。</p>
+<pre><code>docker run -d -p 80:80  \
+    --name nginx \
+    --link php-fpm \
+    -v /data/wwwroot/:/data/wwwroot/ \
+    nginx</code></pre>
+<p>值得注意的是如果nginx解析文件的时候，如果请求的是静态文件，会直接返回该nginx容器里面的文件到客户端，如果请求的是php文件，他会把这个请求转发到php-fpm，然后php-fpm去本地去找php文件进行解析，也就是php-fpm容器本身的文件。</p>
+<p>依次运行上面的3个服务的启动命令之后就可以搭建我们常见的lnmp了。但是每次运行服务都需要运行上面的命令显得有点麻烦，我们可以使用docker-compose命令去进行集中管理。</p>
+<h3>使用docker-compose</h3>
+<p>只需要创建一个lnmp目录，然后在lnmp目录下创建docker-compose.yml输入下面命令即可管理集成化的环境。<br />
+其实可以通过命令的名字就很容易知道各个指令的含义。</p>
+<blockquote>
+<p>version: 由于docker-compose是一个发展中的工具，很有可能每个版本的指令都有所不同，因此需要在开头声明docker-compose指令的适用版本。
+image: 指服务通过哪个镜像进行运行。
+depends_on: 这个指明了软件的依赖与哪个软件，其实也是声明了软件运行的顺序。</p>
+</blockquote>
+<pre><code>version: '2'
+
+services:
+    mysql:
+        image: "mysql"
+        ports:
+            - "3306:3306"
+        volumes:
+            - /var/lib/mysql/:/var/lib/mysql/
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+
+    php-fpm:
+        image: "php-fpm"
+        depends_on:
+            - mysql
+        links:
+            - mysql
+        ports:
+            - "9000:9000"
+        volumes:
+            - /data/wwwroot/:/data/wwwroot/
+
+    nginx:
+        image: "nginx"
+        depends_on:
+            - php-fpm
+        links:
+            - php-fpm
+        volumes:
+            - /data/wwwroot/:/data/wwwroot/
+        ports:
+            - "80:80"
+</code></pre>
+<p>之后在这个lnmp目录下执行compose相关命令就可以控制。</p>
+<pre><code># 运行docker-compose服务
+$ docker-compose up -d
+# 停止服务
+$ docker-compose stop
+# 删除该服务相关的容器
+$ docker-compose rm
+# 运行已存在docker-compose的服务
+$ docker-compose start</code></pre>
+<p>最后，我把自己的调优过的lnmp的docker-compose放到<a href="https://github.com/sbb520/lnmp_docker">github</a>上，有需要可以参考一下。</p>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/Docker.html" rel="category">Docker</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/Linux.html" rel="tag">Linux</a></li>
+                   <li><a href="/tags/Docker.html" rel="tag">Docker</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'e6699b2dcd8699a7fa9f8d060823fc40',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+        <li><a href="/blog/Go/channel.html">Golang学习笔记：channel</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>欢迎来到sbb的博客，本人后端程序员一个，专注后端相关的技术。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
