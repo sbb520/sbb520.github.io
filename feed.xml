@@ -1,12 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
         <title>Sbb-Blog</title>
-        <description>欢迎来到sbb的博客，本人程序员一个，专注后端相关的技术。</description>
+        <description>这里是sbb的博客，互联网从业者。</description>
         <link>/</link>
         <atom:link href="//feed.xml" rel="self" type="application/rss+xml" />
-        <pubDate>2019-10-03 06:10:47</pubDate>
-        <lastBuildDate>2019-10-03 06:10:47</lastBuildDate>
+        <pubDate>2019-10-13 08:10:37</pubDate>
+        <lastBuildDate>2019-10-13 08:10:37</lastBuildDate>
         <generator>Gitblog v1.0</generator>
+                <item>
+            <title>统计学：回归分析</title>
+            <description>
+            &lt;!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2019-10-02
+title: 统计学：回归分析
+tags: statistics probability
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: statistics
+status: publish
+summary: 数据分析第二弹，回归分析（简单回归），
+--&gt;
+&lt;p&gt;线性回归是用来建立自变量和因变量之间的模型，针对1个自变量的线性回归，我们称之为简单回归，最近学了简单回归（其实还学了决策树，但能力不足先不整理0.0）。&lt;/p&gt;
+&lt;h2&gt;最小二乘法&lt;/h2&gt;
+&lt;p&gt;针对一堆看似有规律的数据，是否可以使用一条线把他们连起来，从而之后根据自变量预测因变量？&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/linear_regression.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;如上面这幅图使用了一条直线来贯穿全部的点，之后我们在知道自变量的情况，就可以去预测因变量了，如温度和冰饮料的销量，我们如果有一条预测的直线，那么就可以根据当天的温度，去预测冰饮料的销量。&lt;/p&gt;
+&lt;p&gt;这条直线的表达式是：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/simple_linear_regression.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;那么问题是我们该如何去得出这条线呢，且这条线造成的误差是最小的，答案是有的，就是使用最小二乘法(least squares method)来去描述他们之间的关系。在这里我们使用&lt;img src=&quot;/blog/img/statistics/regression/prediction_y.png&quot; alt=&quot;&quot; /&gt;来去描述预测值，Y表示原来的观测值。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/least_squares_method.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;设有有以下的情景：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/example.png&quot; alt=&quot;1570766691337&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;有人得到一份当地的收入（X）和销售额（Y）之间的关系，认为收入会影响到销售额，利用最小二乘法算出它们之间的关系，得出结果如下，之后我们还会用这个例子。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/least_squares_method_example.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h2&gt;相关性&lt;/h2&gt;
+&lt;p&gt;刚刚我们算出来模型，但是我们怎么知道自变量和因变量之间的相关性呢？可以使用决定系数来求出他们的关系。&lt;/p&gt;
+&lt;p&gt;这里我们先引入三个误差的指标。&lt;/p&gt;
+&lt;h4&gt;总平方和&lt;/h4&gt;
+&lt;p&gt;总平方和（sum of squares of total）用来计算观测值和平均值的总误差。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/sum_of_the_squares_total.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h4&gt;回归平方和&lt;/h4&gt;
+&lt;p&gt;回归平方和（sum squares of regression）用来计算预测值和平均值的总误差。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/sum_of_the_squares_regression.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h4&gt;残差平方和&lt;/h4&gt;
+&lt;p&gt;残差平方和（/blog/img/statistics/regression/sum squares of errors）用来计算预测值和观测值之间的总误差。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/sum_of_the_squares_error.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;三者的关系可以通过下图来大致表现一下：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/sum_of_the_squares_relationship.png&quot; alt=&quot;1570610045827&quot; /&gt;&lt;/p&gt;
+&lt;h4&gt;决定系数&lt;/h4&gt;
+&lt;p&gt;决定系数（coefficient of determination）用来表示自变量和因变量之间的相关性&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/coefficient_of_determination.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;数值越接近1，就证明两者之间的相关性更高。&lt;/p&gt;
+&lt;p&gt;在例子里算出这个值是：0.6944&lt;/p&gt;
+&lt;h2&gt;残差图&lt;/h2&gt;
+&lt;p&gt;虽然我们可以使用最小二乘法求出线性曲线，还有根据相关系数去看相关性，但是我们还是不知道这条回归线是否适合这个模型，说不定用曲线更适合呢，这时候就引入了残差图（residual plot）去判断这个模型，残差是指预测值与观测值之间的差异，我们将根据全部的观测值整理出残差整理，画成图。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/residual_plot.jpg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;正常而言，残差应该会围绕着预测值上下波动，就像身高，和正态分布一样，个体值会围绕着平均值均匀地上下波动，否则，证明当前的回归不适合这个预测。&lt;/p&gt;
+&lt;h2&gt;F检验&lt;/h2&gt;
+&lt;p&gt;即便我们用了以上的方法求出了回归的公式和相关性，但是我们还是不敢确定得到的结论是否是偶然的，因为极有可能因为&lt;strong&gt;数据量少&lt;/strong&gt;，而得出了两者之间有关系的结论。&lt;/p&gt;
+&lt;h4&gt;虚无假设&lt;/h4&gt;
+&lt;p&gt;统计学家通过一些方法，可以算出两者之间&lt;strong&gt;完全没关系&lt;/strong&gt;的概率，这个完全没关系的假设在学术上叫做&lt;strong&gt;虚无假设null
+hypothesis，也就是H0&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;然后我们还要选一个显著值&lt;strong&gt;α&lt;/strong&gt;，一般选0.05或者0.01，如果算出来的概率低于&lt;strong&gt;α&lt;/strong&gt;，那么我们认为可以否定虚无假设H0，也就是两者之间是有关系的，否则不能说明两者之间是否有关系。&lt;/p&gt;
+&lt;h4&gt;均方误差&lt;/h4&gt;
+&lt;p&gt;这里先引入均方误差（mean square error）的概念，这个东西首先是算出虚无假设的概率的参数之一，其次可以用来表示预测数据和原始数据之间的误差均值。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/mean_square_error.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;其中SSE在上面有给出算法，n是样本的数量，k是自由度。&lt;/p&gt;
+&lt;p&gt;上面例子算出MSE=1.7188&lt;/p&gt;
+&lt;h4&gt;F值&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;F值&lt;/strong&gt;可以拿来根据&lt;strong&gt;F分布&lt;/strong&gt;去找到&lt;strong&gt;H0&lt;/strong&gt;的概率。&lt;/p&gt;
+&lt;p&gt;F值的计算如下：&lt;/p&gt;
+&lt;p&gt;首先F值的计算需要计算MSE和MSR，其中MSR计算如下，k是自由度：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/MSR.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/F_value_formula.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;在上面的例子中，F值计算为9.09。&lt;/p&gt;
+&lt;p&gt;而F分布的图所表现需要看两个参数&lt;strong&gt;df1&lt;/strong&gt;和&lt;strong&gt;df2&lt;/strong&gt;，其中n是样本的数量，k是自由度：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/df1_df2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;在上面例子中，df1为1，df2为4，对应F分布为：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/f_distribution_0.05_table.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;选择显著值&lt;strong&gt;α&lt;/strong&gt;为0.05，对应的概率为0.05的F值为7.71，对应df1为1，df2为4的那个数据。&lt;/p&gt;
+&lt;p&gt;而在F分布中，0.05的值的计算是按照右边面积来算的，所以只要是F值大于0.05对应的7.71，虚无假设的概率都比0.05小，也就是只要F值比7.71大的，我们都可以回绝虚无假说H0。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/blog/img/statistics/regression/F_distribution.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;            </description>
+            <pubDate>2019-10-13 08:34:51</pubDate>
+            <link>//blog/Statistics/regression.html</link>
+            <guid isPermaLink="true">//blog/Statistics/regression.html</guid>
+                                               <category>statistics</category>
+                                    </item>
                 <item>
             <title>统计学：概率论</title>
             <description>

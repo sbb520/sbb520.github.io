@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>统计学：回归分析|Sbb-Blog</title>
+	<meta name="keywords" content="statistics,probability,Sbb-Blog">
+	<meta name="description" content="数据分析第二弹，回归分析（简单回归），">
+	
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/bootstrap/css/bootstrap.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/assets/plugins/font-awesome/css/font-awesome.min.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext">
+	<link rel="stylesheet" href="/theme/quest/css/style.css?ver=2.2" type="text/css" media="all" />
+	<link rel="stylesheet" href="/theme/quest/css/customizer.css?ver=2.2" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Sbb-Blog" href="/feed.xml" />
+	
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?39a2c1dfa1e93ab74730cb5e07c6ec62";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	</head>
+
+<body class="home blog wide">
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+		    <header id="masthead" class="main-header" role="banner">
+<div class="container">
+	<div class="row">
+		<div class="site-branding col-md-4">
+			<h1 class="site-title"><a href="/" rel="home">Sbb-Blog</a></h1>
+				<span class="site-description">越努力越幸运</span>
+		</div>
+		<!-- .site-branding -->
+	</div>
+</div>
+</header>		    <div id="content">
+	<div class="quest-row site-content">
+		<div class="container">
+			<div class="row">
+				<div id="primary" class="content-area single col-md-9">
+					<div id="main" class="site-main" role="main">
+						<article class="post hentry">
+	<header class="entry-header">
+	<h1 class="post-title"><a href="/blog/Statistics/regression.html" rel="bookmark">统计学：回归分析 </a></h1>
+	<div class="entry-meta">
+		<time class="post-date"><i class="fa fa-clock-o"></i>2019-10-02</time>
+				<span class="seperator">/</span>
+	    <span><i class="fa fa-user"></i> sbb</span>
+	    	</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+	<div class="entry-content">
+		<!--
+author: sbb
+head: http://pingodata.qiniudn.com/jockchou-avatar.jpg
+date: 2019-10-02
+title: 统计学：回归分析
+tags: statistics probability
+images: http://pingodata.qiniudn.com/cube2.jpg
+category: statistics
+status: publish
+summary: 数据分析第二弹，回归分析（简单回归），
+-->
+<p>线性回归是用来建立自变量和因变量之间的模型，针对1个自变量的线性回归，我们称之为简单回归，最近学了简单回归（其实还学了决策树，但能力不足先不整理0.0）。</p>
+<h2>最小二乘法</h2>
+<p>针对一堆看似有规律的数据，是否可以使用一条线把他们连起来，从而之后根据自变量预测因变量？</p>
+<p><img src="/blog/img/statistics/regression/linear_regression.png" alt="" /></p>
+<p>如上面这幅图使用了一条直线来贯穿全部的点，之后我们在知道自变量的情况，就可以去预测因变量了，如温度和冰饮料的销量，我们如果有一条预测的直线，那么就可以根据当天的温度，去预测冰饮料的销量。</p>
+<p>这条直线的表达式是：</p>
+<p><img src="/blog/img/statistics/regression/simple_linear_regression.png" alt="" /></p>
+<p>那么问题是我们该如何去得出这条线呢，且这条线造成的误差是最小的，答案是有的，就是使用最小二乘法(least squares method)来去描述他们之间的关系。在这里我们使用<img src="/blog/img/statistics/regression/prediction_y.png" alt="" />来去描述预测值，Y表示原来的观测值。</p>
+<p><img src="/blog/img/statistics/regression/least_squares_method.png" alt="" /></p>
+<p>设有有以下的情景：</p>
+<p><img src="/blog/img/statistics/regression/example.png" alt="1570766691337" /></p>
+<p>有人得到一份当地的收入（X）和销售额（Y）之间的关系，认为收入会影响到销售额，利用最小二乘法算出它们之间的关系，得出结果如下，之后我们还会用这个例子。</p>
+<p><img src="/blog/img/statistics/regression/least_squares_method_example.png" alt="" /></p>
+<h2>相关性</h2>
+<p>刚刚我们算出来模型，但是我们怎么知道自变量和因变量之间的相关性呢？可以使用决定系数来求出他们的关系。</p>
+<p>这里我们先引入三个误差的指标。</p>
+<h4>总平方和</h4>
+<p>总平方和（sum of squares of total）用来计算观测值和平均值的总误差。</p>
+<p><img src="/blog/img/statistics/regression/sum_of_the_squares_total.png" alt="" /></p>
+<h4>回归平方和</h4>
+<p>回归平方和（sum squares of regression）用来计算预测值和平均值的总误差。</p>
+<p><img src="/blog/img/statistics/regression/sum_of_the_squares_regression.png" alt="" /></p>
+<h4>残差平方和</h4>
+<p>残差平方和（/blog/img/statistics/regression/sum squares of errors）用来计算预测值和观测值之间的总误差。</p>
+<p><img src="/blog/img/statistics/regression/sum_of_the_squares_error.png" alt="" /></p>
+<p>三者的关系可以通过下图来大致表现一下：</p>
+<p><img src="/blog/img/statistics/regression/sum_of_the_squares_relationship.png" alt="1570610045827" /></p>
+<h4>决定系数</h4>
+<p>决定系数（coefficient of determination）用来表示自变量和因变量之间的相关性</p>
+<p><img src="/blog/img/statistics/regression/coefficient_of_determination.png" alt="" /></p>
+<p>数值越接近1，就证明两者之间的相关性更高。</p>
+<p>在例子里算出这个值是：0.6944</p>
+<h2>残差图</h2>
+<p>虽然我们可以使用最小二乘法求出线性曲线，还有根据相关系数去看相关性，但是我们还是不知道这条回归线是否适合这个模型，说不定用曲线更适合呢，这时候就引入了残差图（residual plot）去判断这个模型，残差是指预测值与观测值之间的差异，我们将根据全部的观测值整理出残差整理，画成图。</p>
+<p><img src="/blog/img/statistics/regression/residual_plot.jpg" alt="img" /></p>
+<p>正常而言，残差应该会围绕着预测值上下波动，就像身高，和正态分布一样，个体值会围绕着平均值均匀地上下波动，否则，证明当前的回归不适合这个预测。</p>
+<h2>F检验</h2>
+<p>即便我们用了以上的方法求出了回归的公式和相关性，但是我们还是不敢确定得到的结论是否是偶然的，因为极有可能因为<strong>数据量少</strong>，而得出了两者之间有关系的结论。</p>
+<h4>虚无假设</h4>
+<p>统计学家通过一些方法，可以算出两者之间<strong>完全没关系</strong>的概率，这个完全没关系的假设在学术上叫做<strong>虚无假设null
+hypothesis，也就是H0</strong>。</p>
+<p>然后我们还要选一个显著值<strong>α</strong>，一般选0.05或者0.01，如果算出来的概率低于<strong>α</strong>，那么我们认为可以否定虚无假设H0，也就是两者之间是有关系的，否则不能说明两者之间是否有关系。</p>
+<h4>均方误差</h4>
+<p>这里先引入均方误差（mean square error）的概念，这个东西首先是算出虚无假设的概率的参数之一，其次可以用来表示预测数据和原始数据之间的误差均值。</p>
+<p><img src="/blog/img/statistics/regression/mean_square_error.png" alt="" /></p>
+<p>其中SSE在上面有给出算法，n是样本的数量，k是自由度。</p>
+<p>上面例子算出MSE=1.7188</p>
+<h4>F值</h4>
+<p><strong>F值</strong>可以拿来根据<strong>F分布</strong>去找到<strong>H0</strong>的概率。</p>
+<p>F值的计算如下：</p>
+<p>首先F值的计算需要计算MSE和MSR，其中MSR计算如下，k是自由度：</p>
+<p><img src="/blog/img/statistics/regression/MSR.png" alt="" /></p>
+<p><img src="/blog/img/statistics/regression/F_value_formula.png" alt="" /></p>
+<p>在上面的例子中，F值计算为9.09。</p>
+<p>而F分布的图所表现需要看两个参数<strong>df1</strong>和<strong>df2</strong>，其中n是样本的数量，k是自由度：</p>
+<p><img src="/blog/img/statistics/regression/df1_df2.png" alt="" /></p>
+<p>在上面例子中，df1为1，df2为4，对应F分布为：</p>
+<p><img src="/blog/img/statistics/regression/f_distribution_0.05_table.png" alt="" /></p>
+<p>选择显著值<strong>α</strong>为0.05，对应的概率为0.05的F值为7.71，对应df1为1，df2为4的那个数据。</p>
+<p>而在F分布中，0.05的值的计算是按照右边面积来算的，所以只要是F值大于0.05对应的7.71，虚无假设的概率都比0.05小，也就是只要F值比7.71大的，我们都可以回绝虚无假说H0。</p>
+<p><img src="/blog/img/statistics/regression/F_distribution.png" alt="" /></p>
+	</div><!-- .entry-content -->	<footer class="entry-footer">
+		<ul class="post-categories">
+          
+          <li><a href="/category/statistics.html" rel="category">statistics</a></li>
+        	</ul>
+		
+		<ul class="post-tags">
+                   <li><a href="/tags/statistics.html" rel="tag">statistics</a></li>
+                   <li><a href="/tags/probability.html" rel="tag">probability</a></li>
+        	</ul>
+		
+	</footer><!-- .entry-footer --></article><!-- #post-## -->            			<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+	var gitalk = new Gitalk({
+  clientID: 'aafcde3970e596183170',
+  clientSecret: '732aec3cd471b1e0d30362de4edd1f9a8d75c115',
+  repo: 'gitblog',
+  owner: 'sbb520',
+  admin: ['sbb520'],
+  id: 'aebb7030aad218dd361e6f485693548c',      // Ensure uniqueness and length less than 50
+  distractionFreeMode: false  // Facebook-like distraction free mode
+})
+
+gitalk.render('gitalk-container')
+</script>
+					</div>
+					<!-- #main -->
+				</div>
+				<!-- #primary -->
+				<div id="secondary" class="widget-area main-sidebar col-md-3" role="complementary">
+	<aside class="widget widget_search sidebar-widget clearfix">
+	<h3 class="widget-title">搜索</h3>
+	<form class="search" action="/search" method="get">
+		<fieldset>
+			<div class="text">
+				<input name="keyword" id="keyword" type="text" placeholder="Search ..."/>
+				<button class="fa fa-search">Search</button>
+			</div>
+		</fieldset>
+	</form>
+</aside>
+	<aside class="widget widget_categories sidebar-widget clearfix">
+	<h3 class="widget-title">分类目录</h3>
+	<ul>
+		        <li class="cat-item"><a href="/category/Docker.html" >Docker</a></li>
+                <li class="cat-item"><a href="/category/Go.html" >Go</a></li>
+                <li class="cat-item"><a href="/category/Linux.html" >Linux</a></li>
+                <li class="cat-item"><a href="/category/PHP.html" >PHP</a></li>
+                <li class="cat-item"><a href="/category/RabbitMQ.html" >RabbitMQ</a></li>
+                <li class="cat-item"><a href="/category/server.html" >server</a></li>
+                <li class="cat-item"><a href="/category/SQL.html" >SQL</a></li>
+                <li class="cat-item"><a href="/category/statistics.html" >statistics</a></li>
+                <li class="cat-item"><a href="/category/GitBlog.html" >GitBlog</a></li>
+        	</ul>
+</aside>
+	<aside class="widget widget_archive sidebar-widget clearfix">
+	<h3 class="widget-title">文章归档</h3>
+	<ul>
+		<li><a href="/archive/201910.html">2019-10</a></li>
+		<li><a href="/archive/201811.html">2018-11</a></li>
+		<li><a href="/archive/201805.html">2018-05</a></li>
+		<li><a href="/archive/201804.html">2018-04</a></li>
+		<li><a href="/archive/201803.html">2018-03</a></li>
+		<li><a href="/archive/201802.html">2018-02</a></li>
+		<li><a href="/archive/201801.html">2018-01</a></li>
+		<li><a href="/archive/201712.html">2017-12</a></li>
+		<li><a href="/archive/201507.html">2015-07</a></li>
+		</ul>
+</aside>	<aside class="widget widget_recent_entries sidebar-widget clearfix">
+	<h3 class="widget-title">近期文章</h3>
+	<ul>
+	    <li><a href="/blog/Statistics/regression.html">统计学：回归分析</a></li>
+        <li><a href="/blog/Statistics/probability.html">统计学：概率论</a></li>
+        <li><a href="/blog/server/1.html">服务器的两种并发原理</a></li>
+        <li><a href="/blog/RabbitMQ/firstToLearn.html">RabbitMQ入门</a></li>
+        <li><a href="/blog/Go/SafeComplicate.html">如何做到资源并发安全</a></li>
+    	</ul>
+</aside>
+	<aside class="widget widget_tag_cloud sidebar-widget clearfix">
+	<h3 class="widget-title">标签</h3>
+	<div class="tagcloud">
+		<a href="/tags/Linux.html"  title="Linux" >Linux</a>
+		<a href="/tags/Docker.html"  title="Docker" >Docker</a>
+		<a href="/tags/Go.html"  title="Go" >Go</a>
+		<a href="/tags/%E5%B9%B6%E5%8F%91.html"  title="并发" >并发</a>
+		<a href="/tags/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F.html"  title="人生感悟" >人生感悟</a>
+		<a href="/tags/PHP.html"  title="PHP" >PHP</a>
+		<a href="/tags/laravel.html"  title="laravel" >laravel</a>
+		<a href="/tags/centos.html"  title="centos" >centos</a>
+		<a href="/tags/RabbitMQ.html"  title="RabbitMQ" >RabbitMQ</a>
+		<a href="/tags/server.html"  title="server" >server</a>
+		<a href="/tags/SQL.html"  title="SQL" >SQL</a>
+		<a href="/tags/MySQL.html"  title="MySQL" >MySQL</a>
+		<a href="/tags/statistics.html"  title="statistics" >statistics</a>
+		<a href="/tags/probability.html"  title="probability" >probability</a>
+		<a href="/tags/GitBlog.html"  title="GitBlog" >GitBlog</a>
+		</div>
+</aside>
+	<aside class="widget widget_text sidebar-widget clearfix">
+	<h3 class="widget-title">介绍</h3>
+	<div class="textwidget">
+		<p>这里是sbb的博客，互联网从业者。</p>
+	</div>
+</aside>
+</div><!-- #secondary -->			</div>
+			<!-- .row -->
+		</div>
+		<!-- .container -->
+	</div>
+	<!-- .quest-row -->
+</div>
+<script>
+var content = document.querySelector(".entry-content")
+var atag = content.querySelectorAll("a")
+for(var i = 0; i < atag.length; i++){
+	atag[i].setAttribute("target", "_blank")
+}
+</script>
+		    <footer id="colophon" class="copyright quest-row" role="contentinfo">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 copyright-text">
+				<a href="https://github.com/jockchou/gitblog">Proudly powered by Gitblog</a>
+			</div>
+			<div class="col-md-6 social-icon-container clearfix">
+				<ul></ul>
+			</div>
+		</div>
+		<!-- end row -->
+	</div>
+	<!-- end container -->
+</footer>	</div><!-- #page -->
+	<a href="#0" class="cd-top"><i class="fa fa-angle-up"></i></a>
+
+<script type="text/javascript" src="/theme/quest/assets/plugins/modernizr/modernizr.custom.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery.js?ver=1.11.2"></script>
+<script type="text/javascript" src="/theme/quest/js/jquery/jquery-migrate.min.js?ver=1.2.1"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/bootstrap/js/bootstrap.min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/wow/wow.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/plugins/colorbox/jquery.colorbox-min.js?ver=2.2"></script>
+<script type="text/javascript" src="/theme/quest/assets/js/quest.js?ver=2.2"></script>
+	
+<link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/8.6/styles/default.min.css">
+<script src="//cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
